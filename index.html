@@ -2,78 +2,152 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>自製武器大對決！最終完美穩定版</title>
+    <title>自製武器大對決：環境大亂鬥 (核心重構穩定版)</title>
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
-            background-color: #222;
+            background-color: #1a1a1a;
             color: #fff;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 20px;
             overflow: hidden;
+            padding: 10px;
         }
-        h1 { margin: 0 0 5px 0; font-size: 24px; text-align: center; }
-        .instructions { color: #aaa; margin-bottom: 10px; font-size: 13px; text-align: center; line-height: 1.5; }
+        h1 { margin: 0 0 5px 0; font-size: 24px; text-align: center; text-transform: uppercase; letter-spacing: 2px; color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.5); }
+        .instructions { color: #aaa; margin-bottom: 10px; font-size: 12px; text-align: center; line-height: 1.5; }
         
         #combatLog {
             width: 800px;
             height: 35px;
-            background-color: #333;
+            background-color: rgba(20, 20, 20, 0.9);
             border: 2px solid #555;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-size: 14px;
             color: #ffcc00;
-            border-radius: 4px;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            z-index: 5;
         }
 
-        /* 遊戲主容器 */
         #gameContainer { 
             position: relative; 
             width: 800px;
             height: 500px;
+            border: 4px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            border-radius: 8px;
+            overflow: hidden;
         }
         
         canvas#gameCanvas {
-            background-color: #111;
-            border: 4px solid #444;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            position: absolute;
+            top: 0; left: 0;
+            background-color: transparent; 
             display: block;
+            z-index: 5; 
         }
         
-        /* 戰前準備塗鴉遮罩 */
         #drawScreen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(20, 20, 20, 0.98);
-            border: 4px solid #555;
+            background: #111116; 
+            border: 4px solid #ffcc00;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 30;
-            gap: 20px;
+            z-index: 9999; 
+            gap: 12px;
+            padding: 15px 20px;
         }
+
+        #stageMapSelect {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+        #stageMapSelect h2 { font-size: 16px; color: #ffcc00; letter-spacing: 1px; }
+        
+        .map-buttons-group {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: center;
+        }
+        .map-btn {
+            padding: 6px 14px;
+            background-color: #262626;
+            border: 2px solid #444;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .map-btn:hover { background-color: #333; color: #fff; }
+        .map-btn.selected {
+            background-color: #ffcc00;
+            border-color: #ffcc00;
+            color: #111;
+            box-shadow: 0 0 10px rgba(255,204,0,0.4);
+        }
+
+        #mapPreviewWindow {
+            width: 560px;
+            height: 75px;
+            background-color: #000;
+            border: 1px solid #444;
+            border-radius: 6px;
+            display: flex;
+            padding: 8px 15px;
+            gap: 15px;
+            align-items: center;
+        }
+        #mapPreviewGraphic { font-size: 24px; width: 35px; text-align: center; }
+        .map-info-text { flex: 1; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+        #mapPreviewName { font-size: 13px; font-weight: bold; color: #ffcc00; }
+        #mapPreviewDesc { font-size: 11px; color: #aaa; line-height: 1.4; }
+
+        .btn-next-stage {
+            padding: 8px 35px; font-size: 14px; font-weight: bold;
+            background: #ffcc00; border: none; border-radius: 5px; cursor: pointer; color: #111;
+            box-shadow: 0 4px 10px rgba(255,204,0,0.2);
+        }
+        .btn-next-stage:hover { background: #ffe066; }
+
+        #stageWeaponDraw {
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        #stageWeaponDraw h2 { font-size: 16px; color: #00ffcc; }
+        #currentSelectedMapTip { font-size: 12px; color: #ff3366; font-weight: bold; background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 4px; }
+
         .draw-panels {
             display: flex;
-            gap: 40px;
+            gap: 30px;
         }
         .paint-box {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 4px;
         }
-        .paint-box h3 { margin: 0; font-size: 16px; color: #00ffcc; }
+        .paint-box h3 { margin: 0; font-size: 13px; color: #00ffcc; }
         .paint-box:last-child h3 { color: #ff3366; }
         
         .paint-canvas {
@@ -81,38 +155,32 @@
             border: 2px solid #444;
             cursor: crosshair;
             border-radius: 6px;
+            width: 170px;
+            height: 170px;
         }
-        .btn-clear {
-            padding: 6px 16px; background: #333; border: 1px solid #555;
-            color: #fff; cursor: pointer; border-radius: 4px; font-size: 12px;
-            font-weight: bold;
-        }
-        .btn-clear:hover { background: #444; border-color: #777; }
         
         #btnStartGame {
-            padding: 12px 40px; font-size: 18px; font-weight: bold;
+            padding: 8px 45px; font-size: 15px; font-weight: bold;
             background: #ffcc00; border: none; border-radius: 5px; cursor: pointer;
-            box-shadow: 0 4px 14px rgba(255,204,0,0.3);
-            color: #111;
+            color: #111; box-shadow: 0 4px 10px rgba(255,204,0,0.3);
         }
         #btnStartGame:hover { background: #ffe066; }
 
-        /* UI 佈局 */
         .ui-box {
             position: absolute;
-            top: 20px;
+            top: 15px;
             width: 260px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            z-index: 5;
+            gap: 4px;
+            z-index: 50; 
         }
         #p1Ui { left: 20px; align-items: flex-start; }
         #p2Ui { right: 20px; align-items: flex-end; }
 
         .hp-bar-container {
-            width: 250px;
-            height: 24px;
+            width: 240px;
+            height: 22px;
             background-color: #333;
             border: 2px solid #fff;
             border-radius: 5px;
@@ -134,57 +202,157 @@
         .hp-text {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 900; color: #ffffff;
+            font-size: 11px; font-weight: 900; color: #ffffff;
             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-            z-index: 10;
+            z-index: 52;
         }
         
         .status-text {
-            font-size: 13px; font-weight: bold; color: #aaa; white-space: nowrap; 
-            background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: bold; color: #aaa; white-space: nowrap; 
+            background: rgba(0,0,0,0.7); padding: 3px 6px; border-radius: 4px;
         }
 
         #gameOverScreen {
             display: none; position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); flex-direction: column;
-            align-items: center; justify-content: center; font-size: 32px; color: #fff; z-index: 20;
+            background: rgba(10, 10, 10, 0.9); flex-direction: column;
+            align-items: center; justify-content: center; font-size: 28px; font-weight: bold; color: #fff; z-index: 90;
         }
         .btn-restart {
-            margin-top: 20px; padding: 10px 20px; font-size: 18px;
+            margin-top: 15px; padding: 8px 18px; font-size: 15px;
             cursor: pointer; background: #00ffcc; border: none; border-radius: 5px;
             font-weight: bold; color: #111;
+        }
+
+        #domBackgroundLayer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000;
+            z-index: 0; 
+            overflow: hidden;
+        }
+
+        #swordRainArea { display: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; }
+        #counterCloudArea { display: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; }
+        #poisonPitArea { display: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; }
+
+        .falling-sword {
+            position: absolute;
+            width: 3px; height: 35px;
+            background: linear-gradient(to bottom, #777, #fff, #555);
+            border-radius: 2px;
+            opacity: 0.8;
+            animation: fallAnimation 1.2s linear infinite;
+        }
+        .falling-sword::after {
+            content: ''; position: absolute; top: -5px; left: -2px;
+            width: 7px; height: 5px; background-color: #444; border-radius: 1px;
+        }
+        @keyframes fallAnimation {
+            0% { transform: translateY(-50px); opacity: 0; }
+            10% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { transform: translateY(550px); opacity: 0; }
+        }
+
+        .counter-cloud {
+            position: absolute;
+            top: 60px;
+            width: 130px; height: 50px;
+            background: rgba(220, 220, 220, 0.7);
+            border-radius: 25px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            animation: cloudFloat 6s ease-in-out infinite;
+            transition: all 0.2s;
+        }
+        .counter-cloud::before { content: ''; position: absolute; top: -20px; left: 25px; width: 60px; height: 60px; background: inherit; border-radius: 50%; }
+        .counter-cloud::after { content: ''; position: absolute; top: -25px; left: 65px; width: 45px; height: 45px; background: inherit; border-radius: 50%; }
+        .counter-cloud.pulse {
+            background: rgba(255, 204, 0, 0.9);
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.9);
+            transform: scale(1.1);
+        }
+        @keyframes cloudFloat {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(30px); }
+            100% { transform: translateX(0); }
+        }
+
+        #poisonVapor {
+            position: absolute;
+            bottom: 20px;
+            width: 100%; height: 60px;
+            background: linear-gradient(to top, rgba(150, 0, 255, 0.5), rgba(50, 0, 100, 0));
+            animation: poisonPulse 2s ease-in-out infinite;
+        }
+        @keyframes poisonPulse {
+            0% { height: 50px; opacity: 0.5; }
+            50% { height: 75px; opacity: 0.7; }
+            100% { height: 50px; opacity: 0.5; }
         }
     </style>
 </head>
 <body>
 
-    <h1>自製武器大對決！Bounce & Dodge</h1>
+    <h1>環境大亂鬥</h1>
     <div class="instructions">
-        <strong>操作對戰指南：</strong> 武器每局自由更換，發射間隔 1 秒，反彈兩次。爆頭可獲取無敵盾與雙倍爆擊！<br>
-        <strong>玩家 1 (左側青色):</strong> W (跳) / S (蹲) / A (左) / D (右) | F (投擲) | G (盾牌)<br>
-        <strong>玩家 2 (右側紅色):</strong> ↑ (跳) / ↓ (蹲) / ← (左) / → (右) | K (投擲) | L (盾牌)
+        <strong>系統級重構版：</strong> 全面修復重複綁定、負數HP、無限迴圈死機等 12 項底層問題！<br>
+        <strong>玩家 1 (左青):</strong> W 跳 / S 蹲 / A 左 / D 右 | F 投擲 | G 盾牌<br>
+        <strong>玩家 2 (右紅):</strong> ↑ 跳 / ↓ 蹲 / ← 左 / → 右 | K 投擲 | L 盾牌
     </div>
 
-    <div id="combatLog">🎨 戰前整備：請雙方在面板中繪製你的專屬武器 🎨</div>
+    <div id="combatLog">🎨 戰前整備：請手動選擇地圖並繪製專屬兵器 🎨</div>
 
     <div id="gameContainer">
         
         <div id="drawScreen">
-            <h2 style="margin:0 0 10px 0; font-size:20px; color:#ffcc00;">請使用滑鼠拖曳，繪製你的武器形狀</h2>
-            <div class="draw-panels">
-                <div class="paint-box">
-                    <h3>玩家 1 武器庫 (青色筆刷)</h3>
-                    <canvas id="p1Paint" class="paint-canvas" width="200" height="200"></canvas>
-                    <button class="btn-clear" onclick="clearCanvas('p1Paint', p1WeaponShape)">擦除重畫</button>
+            <div id="stageMapSelect">
+                <h2>第一階段：選擇決鬥戰場</h2>
+                <div class="map-buttons-group">
+                    <button class="map-btn selected" id="mapRandom" onclick="selectMap('random')">🎲 隨機選關</button>
+                    <button class="map-btn" id="mapSword" onclick="selectMap(1)">⚔️ 古戰場劍雨</button>
+                    <button class="map-btn" id="mapCloud" onclick="selectMap(2)">☁️ 天空城之雲</button>
+                    <button class="map-btn" id="mapPoison" onclick="selectMap(3)">☠️ 地下城毒窟</button>
                 </div>
-                <div class="paint-box">
-                    <h3>玩家 2 武器庫 (粉紅筆刷)</h3>
-                    <canvas id="p2Paint" class="paint-canvas" width="200" height="200"></canvas>
-                    <button class="btn-clear" onclick="clearCanvas('p2Paint', p2WeaponShape)">擦除重畫</button>
+                <div id="mapPreviewWindow">
+                    <div id="mapPreviewGraphic">🎲</div>
+                    <div class="map-info-text">
+                        <div id="mapPreviewName">隨機選關模式</div>
+                        <div id="mapPreviewDesc">由系統隨機指派一個神秘戰場。環境要素無法預測，極度考驗雙方玩家的格擋直覺與臨場反應能力！</div>
+                    </div>
                 </div>
+                <button class="btn-next-stage" onclick="goToWeaponDrawStage()">確認選定地圖 →</button>
             </div>
-            <button id="btnStartGame" onclick="startGame()">雙方準備就緒！進入戰場</button>
+
+            <div id="stageWeaponDraw">
+                <h2>第二階段：繪製專屬神兵</h2>
+                <div id="currentSelectedMapTip">目前戰場：隨機選關模式</div>
+                
+                <div class="draw-panels">
+                    <div class="paint-box">
+                        <h3>玩家 1 武器 (青色)</h3>
+                        <canvas id="p1Paint" class="paint-canvas" width="170" height="170"></canvas>
+                        <button class="btn-clear" onclick="clearCanvas('p1Paint', p1WeaponShape)">擦除重畫</button>
+                    </div>
+                    <div class="paint-box">
+                        <h3>玩家 2 武器 (粉紅)</h3>
+                        <canvas id="p2Paint" class="paint-canvas" width="170" height="170"></canvas>
+                        <button class="btn-clear" onclick="clearCanvas('p2Paint', p2WeaponShape)">擦除重畫</button>
+                    </div>
+                </div>
+                <button id="btnStartGame" onclick="startGame()">雙方就緒，解鎖戰場開打！</button>
+            </div>
+        </div>
+
+        <div id="domBackgroundLayer">
+            <div id="swordRainArea"></div>
+            <div id="counterCloudArea">
+                <div class="counter-cloud" style="left: 150px; animation-delay: 0s;" id="cloud1"></div>
+                <div class="counter-cloud" style="left: 520px; animation-delay: 2s;" id="cloud2"></div>
+            </div>
+            <div id="poisonPitArea">
+                <div id="poisonVapor"></div>
+            </div>
         </div>
 
         <div id="p1Ui" class="ui-box">
@@ -193,7 +361,7 @@
                 <div id="p1HpFill" class="hp-fill"></div>
                 <div id="p1HpText" class="hp-text">2000 / 2000</div>
             </div>
-            <div id="p1Status" class="status-text">盾牌: 準備就緒 | 連擊: 0</div>
+            <div id="p1Status" class="status-text">盾牌: Ready | 連擊: 0</div>
         </div>
 
         <div id="p2Ui" class="ui-box">
@@ -202,14 +370,14 @@
                 <div id="p2HpFill" class="hp-fill"></div>
                 <div id="p2HpText" class="hp-text">2000 / 2000</div>
             </div>
-            <div id="p2Status" class="status-text">盾牌: 準備就緒 | 連擊: 0</div>
+            <div id="p2Status" class="status-text">盾牌: Ready | 連擊: 0</div>
         </div>
         
         <canvas id="gameCanvas" width="800" height="500"></canvas>
 
         <div id="gameOverScreen">
             <div id="winnerText">玩家 1 獲勝！</div>
-            <button class="btn-restart" onclick="resetToDrawScreen()">重新設計兵器</button>
+            <button class="btn-restart" onclick="resetToDrawScreen()">重新整備對決</button>
         </div>
     </div>
 
@@ -222,7 +390,7 @@ const BOUNCE_MAX = 2;
 const MAX_HP = 2000; 
 const HEAL_AMOUNT = 200; 
 const BASE_WEAPON_SPEED = 11; 
-const FRAME_COOLDOWN_LIMIT = 60; // 1秒冷卻 (60幀)
+const FRAME_COOLDOWN_LIMIT = 60; 
 
 let keys = {};
 window.addEventListener("keydown", e => { keys[e.key] = true; });
@@ -231,57 +399,133 @@ window.addEventListener("keyup", e => { keys[e.key] = false; });
 let p1WeaponShape = [];
 let p2WeaponShape = [];
 let isDrawingPhase = true;
-
-let p1ShieldInterval = null;
-let p2ShieldInterval = null;
+let gameOver = false;
 let gameLoopId = null;
 
-function initPaintBrushStyle(pCtx, color) {
-    pCtx.strokeStyle = color;
-    pCtx.lineWidth = 5;
-    pCtx.lineCap = "round";
-    pCtx.lineJoin = "round";
+const buildings = [];
+const vineStaticData = [];
+generateStaticBackgroundData();
+
+let currentMapType = 'random'; 
+let selectedMapFromUI = 'random'; 
+let swordRainActive = false;
+let counterCloudActive = false;
+let poisonPitActive = false;
+
+const cloudsDOM = [document.getElementById('cloud1'), document.getElementById('cloud2')];
+
+const mapDatabase = {
+    'random': { name: "隨機選關模式", graphic: "🎲", color: "#ffcc00", desc: "由系統隨機指派一個神秘戰場。關卡要素完全隨機，考驗雙方玩家的臨場反應與格擋直覺！" },
+    1: { name: "古戰場之劍雨", graphic: "⚔️", color: "#aaaaaa", desc: "無數殘破的神兵利器從天而降。此地圖為純環境視覺特效，不影響血量與物理碰撞，專注於眼前的對手！" },
+    2: { name: "天空城之反擊雲", graphic: "☁️", color: "#00ffff", desc: "空中懸浮著能共鳴的反擊雲。當你在雲朵下方【開啟盾牌格擋】時，雲朵會被激活釋放衝擊波，強行彈飛場上所有敵方武器！" },
+    3: { name: "地下城之毒窟", graphic: "☠️", color: "#a000ff", desc: "地底凝聚著劇毒蒸汽！只要【雙腳踩在地面上】，每秒就會受到劇烈的毒性侵蝕並持續扣血！" }
+};
+
+function generateStaticBackgroundData() {
+    for (let i = 0; i < 15; i++) {
+        const bHeight = 150 + Math.random() * 200;
+        const bX = i * 60 + Math.random() * 20;
+        const bWidth = 50 + Math.random() * 40;
+        buildings.push({ x: bX, width: bWidth, height: bHeight });
+        if (Math.random() > 0.3) {
+            let segmentsCount = Math.floor(bHeight / 10);
+            let currentY = 500 - 20; let currentX = bX + bWidth / 2;
+            let points = [{x: currentX, y: currentY}]; let buds = [];
+            for (let s = 0; s < segmentsCount; s++) {
+                currentY -= 10; currentX += (Math.random() - 0.5) * 5; points.push({x: currentX, y: currentY});
+                if (Math.random() > 0.8) { buds.push({ x: currentX, y: currentY, color: Math.random() > 0.5 ? "#00ffff" : "#ff3366" }); }
+            }
+            vineStaticData.push({ points: points, buds: buds, color: Math.random() > 0.5 ? "rgba(255, 51, 102, 0.4)" : "rgba(0, 255, 204, 0.4)" });
+        }
+    }
 }
 
-function setupPaintCanvas(canvasId, storageArray) {
-    const pCanvas = document.getElementById(canvasId);
-    const pCtx = pCanvas.getContext("2d");
-    
-    initPaintBrushStyle(pCtx, canvasId === 'p1Paint' ? "#00ffcc" : "#ff3366");
-    let drawing = false;
-
-    pCanvas.addEventListener("mousedown", (e) => {
-        drawing = true;
-        pCtx.beginPath();
-        let pt = getMousePos(pCanvas, e);
-        pCtx.moveTo(pt.x, pt.y);
-        storageArray.push({x: pt.x - 100, y: pt.y - 100});
-    });
-
-    pCanvas.addEventListener("mousemove", (e) => {
-        if (!drawing) return;
-        let pt = getMousePos(pCanvas, e);
-        pCtx.lineTo(pt.x, pt.y);
-        pCtx.stroke();
-        storageArray.push({x: pt.x - 100, y: pt.y - 100});
-    });
-
-    window.addEventListener("mouseup", () => { drawing = false; });
+function initPaintBrushStyle(pCtx, color) {
+    pCtx.strokeStyle = color; pCtx.lineWidth = 5; pCtx.lineCap = "round"; pCtx.lineJoin = "round";
 }
 
 function getMousePos(canv, evt) {
-    const rect = canv.getBoundingClientRect();
-    return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+    const rect = canv.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+}
+
+// 【修復】事件重複綁定問題：在全域一次性綁定畫筆，透過 isDrawingPhase 控制
+let p1Drawing = false, p2Drawing = false;
+function bindCanvasEvents() {
+    const c1 = document.getElementById('p1Paint'); const cx1 = c1.getContext('2d');
+    const c2 = document.getElementById('p2Paint'); const cx2 = c2.getContext('2d');
+    
+    initPaintBrushStyle(cx1, "#00ffcc"); initPaintBrushStyle(cx2, "#ff3366");
+
+    c1.addEventListener("mousedown", (e) => { if(!isDrawingPhase) return; p1Drawing = true; cx1.beginPath(); let pt = getMousePos(c1, e); cx1.moveTo(pt.x, pt.y); p1WeaponShape.push({x: pt.x - 85, y: pt.y - 85}); });
+    c1.addEventListener("mousemove", (e) => { if(!p1Drawing || !isDrawingPhase) return; let pt = getMousePos(c1, e); cx1.lineTo(pt.x, pt.y); cx1.stroke(); p1WeaponShape.push({x: pt.x - 85, y: pt.y - 85}); });
+    
+    c2.addEventListener("mousedown", (e) => { if(!isDrawingPhase) return; p2Drawing = true; cx2.beginPath(); let pt = getMousePos(c2, e); cx2.moveTo(pt.x, pt.y); p2WeaponShape.push({x: pt.x - 85, y: pt.y - 85}); });
+    c2.addEventListener("mousemove", (e) => { if(!p2Drawing || !isDrawingPhase) return; let pt = getMousePos(c2, e); cx2.lineTo(pt.x, pt.y); cx2.stroke(); p2WeaponShape.push({x: pt.x - 85, y: pt.y - 85}); });
+    
+    window.addEventListener("mouseup", () => { p1Drawing = false; p2Drawing = false; });
 }
 
 function clearCanvas(canvasId, storageArray) {
-    const pCanvas = document.getElementById(canvasId);
-    pCanvas.getContext("2d").clearRect(0, 0, pCanvas.width, pCanvas.height);
-    storageArray.length = 0; // 強制將全域變數陣列內容清空，維持引用指針不變
+    const pCanvas = document.getElementById(canvasId); pCanvas.getContext("2d").clearRect(0, 0, pCanvas.width, pCanvas.height); 
+    initPaintBrushStyle(pCanvas.getContext("2d"), canvasId === 'p1Paint' ? "#00ffcc" : "#ff3366");
+    storageArray.length = 0; 
 }
 
-setupPaintCanvas('p1Paint', p1WeaponShape);
-setupPaintCanvas('p2Paint', p2WeaponShape);
+function selectMap(mapId) {
+    const buttons = document.querySelectorAll('.map-btn');
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    
+    if (mapId === 'random') document.getElementById('mapRandom').classList.add('selected');
+    else if (mapId === 1) document.getElementById('mapSword').classList.add('selected');
+    else if (mapId === 2) document.getElementById('mapCloud').classList.add('selected');
+    else if (mapId === 3) document.getElementById('mapPoison').classList.add('selected');
+    
+    selectedMapFromUI = mapId;
+
+    const mapData = mapDatabase[mapId];
+    document.getElementById('mapPreviewGraphic').innerText = mapData.graphic;
+    document.getElementById('mapPreviewGraphic').style.color = mapData.color;
+    document.getElementById('mapPreviewName').innerText = mapData.name;
+    document.getElementById('mapPreviewDesc').innerText = mapData.desc;
+}
+
+function goToWeaponDrawStage() {
+    document.getElementById('stageMapSelect').style.display = 'none';
+    document.getElementById('stageWeaponDraw').style.display = 'flex';
+    let mapName = mapDatabase[selectedMapFromUI].name;
+    if (selectedMapFromUI === 'random') mapName = "下一局由系統隨機挑選";
+    document.getElementById('currentSelectedMapTip').innerText = "⚔️ 目前選定戰場：【" + mapName + "】 ⚔️";
+}
+
+function initMapEnvironment(id) {
+    const swordRainDOMArea = document.getElementById('swordRainArea');
+    while (swordRainDOMArea.firstChild) { swordRainDOMArea.removeChild(swordRainDOMArea.firstChild); }
+    
+    document.getElementById('swordRainArea').style.display = "none";
+    document.getElementById('counterCloudArea').style.display = "none";
+    document.getElementById('poisonPitArea').style.display = "none";
+    
+    swordRainActive = false; counterCloudActive = false; poisonPitActive = false;
+    let mapName = "";
+    
+    switch(id) {
+        case 1:
+            swordRainActive = true; document.getElementById('swordRainArea').style.display = "block";
+            for(let i=0; i<15; i++){
+                let sword = document.createElement('div'); sword.className = 'falling-sword';
+                sword.style.left = (Math.random() * 750 + 25) + "px"; sword.style.animationDelay = (Math.random() * 2) + "s";
+                document.getElementById('swordRainArea').appendChild(sword);
+            }
+            mapName = "古戰場之劍雨"; break;
+        case 2:
+            counterCloudActive = true; document.getElementById('counterCloudArea').style.display = "block";
+            mapName = "天空城之反擊雲"; break;
+        case 3:
+            poisonPitActive = true; document.getElementById('poisonPitArea').style.display = "block";
+            mapName = "地下城之毒窟"; break;
+    }
+    logCombat("⚔️ 頂尖對決開始！當前關卡：【" + mapName + "】 ⚔️");
+}
 
 function startGame() {
     if (p1WeaponShape.length === 0) p1WeaponShape = [{x:-20, y:0}, {x:20, y:0}];
@@ -289,474 +533,242 @@ function startGame() {
     
     isDrawingPhase = false;
     document.getElementById("drawScreen").style.display = "none";
-    logCombat("⚔️ 頂尖對決開始！請點擊畫布後使用鍵盤操作 ⚔️");
+    
+    let finalMapId = selectedMapFromUI;
+    if (selectedMapFromUI === 'random') { finalMapId = Math.floor(Math.random() * 3) + 1; }
+    currentMapType = finalMapId;
+    initMapEnvironment(finalMapId);
 }
 
+// 【修復】移除 setInterval 改用 Date.now()，徹底解決 UI 冷卻重疊與全域污染問題
 class Player {
     constructor(x, y, color, side, name) {
-        this.x = x; this.y = y;
-        this.baseWidth = 40;  
-        this.baseHeight = 60; 
-        this.color = color; this.side = side;
-        this.name = name; 
-        this.hp = MAX_HP;
-        this.vy = 0;
-        this.speed = 4;
-        this.isJumping = false;
-        this.isCrouching = false;
-        this.frameCooldownCounter = 0; 
-        
-        this.isShieldActive = false; 
-        this.shieldCooldown = false;
-        this.shieldDuration = 600; 
-        this.shieldCdTime = 5000;  
-
-        this.headshotCombo = 0;
-        this.lastHeadshotTime = 0;
-        this.lastDamagedTime = 0; 
-        this.lastHealTickTime = 0; 
-        this.critShieldActive = false;
-        this.critShieldEndTime = 0;
+        this.x = x; this.y = y; this.baseWidth = 40; this.baseHeight = 60; 
+        this.color = color; this.side = side; this.name = name; 
+        this.hp = MAX_HP; this.vy = 0; this.speed = 4; this.isJumping = false; this.isCrouching = false; this.frameCooldownCounter = 0; 
+        this.isShieldActive = false; this.shieldCooldown = false; this.shieldDuration = 600; this.shieldCdTime = 5000;  
+        this.shieldEndTime = 0; this.shieldCdEndTime = 0;
+        this.headshotCombo = 0; this.lastHeadshotTime = 0; this.lastDamagedTime = 0; this.lastHealTickTime = 0; this.critShieldActive = false; this.critShieldEndTime = 0;
     }
-
     get width() { return this.isCrouching ? this.baseWidth * 3 : this.baseWidth; }
     get height() { return this.isCrouching ? this.baseHeight / 3 : this.baseHeight; }
-
+    
     update() {
         if (isDrawingPhase) return;
-        let prevWidth = this.width;
-
-        if (this.frameCooldownCounter > 0) {
-            this.frameCooldownCounter--;
-        }
-
-        if ((this.side === 'left' && keys['s']) || (this.side === 'right' && keys['ArrowDown'])) {
-            if (!this.isCrouching && !this.isJumping) {
-                this.isCrouching = true;
-                this.x -= (this.width - prevWidth) / 2;
-            }
-        } else {
-            if (this.isCrouching) {
-                this.isCrouching = false;
-                this.x += (prevWidth - this.width) / 2;
-            }
-        }
-
-        if (this.side === 'left') {
-            if (keys['a']) this.x -= this.speed;
-            if (keys['d']) this.x += this.speed;
-        } else {
-            if (keys['ArrowLeft']) this.x -= this.speed;
-            if (keys['ArrowRight']) this.x += this.speed;
-        }
-
-        if (this.x < 0) this.x = 0;
-        if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
-
-        if (((this.side === 'left' && keys['w']) || (this.side === 'right' && keys['ArrowUp'])) && !this.isJumping && !this.isCrouching) {
-            this.vy = -12;
-            this.isJumping = true;
-        }
-
-        this.vy += GRAVITY;
-        this.y += this.vy;
-
-        let groundY = canvas.height - this.height - 20;
-        if (this.y >= groundY) {
-            this.y = groundY;
-            this.vy = 0;
-            this.isJumping = false;
-        }
-
-        if (this.headshotCombo > 0 && Date.now() - this.lastHeadshotTime > 2000) {
-            this.headshotCombo = 0;
-            updateStatusUI();
-        }
-
-        if (this.critShieldActive && Date.now() > this.critShieldEndTime) {
-            this.critShieldActive = false;
-            updateStatusUI();
-        }
-
-        let now = Date.now();
-        if (this.hp > 0 && this.hp < MAX_HP && (now - this.lastDamagedTime > 5000)) {
-            if (this.lastHealTickTime < this.lastDamagedTime) this.lastHealTickTime = now;
-            if (now - this.lastHealTickTime >= 3000) {
-                this.hp += HEAL_AMOUNT;
-                if (this.hp > MAX_HP) this.hp = MAX_HP;
-                damageTexts.push(new FloatingText(this.x + this.width/2 - 10, this.y - 15, `+${HEAL_AMOUNT}`, "#00ff33"));
-                logCombat(this.name + " 觸發定期回血，目前 HP 恢復至: " + Math.round(this.hp));
-                this.lastHealTickTime = now;
-                updateHpBars(false); updateStatusUI();
-            }
-        }
-    }
-
-    draw() {
-        let headHeight = this.height * 0.25; 
-        let bodyHeight = this.height * 0.75; 
-
-        ctx.fillStyle = "#ffcc00";
-        ctx.fillRect(this.x, this.y, this.width, headHeight);
-
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y + headHeight, this.width, bodyHeight);
-
-        ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y + headHeight);
-        ctx.lineTo(this.x + this.width, this.y + headHeight);
-        ctx.stroke();
-
-        if (this.isShieldActive) {
-            ctx.fillStyle = "rgba(0, 255, 255, 0.7)";
-            ctx.shadowBlur = 15; ctx.shadowColor = "#00ffff";
-            let opponent = (this.side === 'left') ? p2 : p1;
-            if (this.x < opponent.x) {
-                ctx.fillRect(this.x + this.width + 5, this.y, 8, this.height);
-            } else {
-                ctx.fillRect(this.x - 13, this.y, 8, this.height);
-            }
-            ctx.shadowBlur = 0;
-        }
-
-        if (this.critShieldActive) {
-            ctx.strokeStyle = "rgba(0, 150, 255, 0.8)";
-            ctx.lineWidth = 4; ctx.shadowBlur = 20; ctx.shadowColor = "#0077ff";
-            ctx.beginPath();
-            let centerX = this.x + this.width / 2;
-            let centerY = this.y + this.height / 2;
-            let radius = Math.max(this.width, this.height) * 0.7;
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    activateShield() {
-        if (this.shieldCooldown || this.isShieldActive) return;
-        this.isShieldActive = true;
-        updateStatusUI();
-        setTimeout(() => {
-            this.isShieldActive = false;
-            this.shieldCooldown = true;
-            this.startShieldCdCountdown(this.shieldCdTime / 1000);
-        }, this.shieldDuration);
-    }
-
-    startShieldCdCountdown(seconds) {
-        let current = seconds;
+        let prevWidth = this.width; if (this.frameCooldownCounter > 0) { this.frameCooldownCounter--; }
+        if ((this.side === 'left' && keys['s']) || (this.side === 'right' && keys['ArrowDown'])) { if (!this.isCrouching && !this.isJumping) { this.isCrouching = true; this.x -= (this.width - prevWidth) / 2; } } 
+        else { if (this.isCrouching) { this.isCrouching = false; this.x += (prevWidth - this.width) / 2; } }
+        if (this.side === 'left') { if (keys['a']) this.x -= this.speed; if (keys['d']) this.x += this.speed; } 
+        else { if (keys['ArrowLeft']) this.x -= this.speed; if (keys['ArrowRight']) this.x += this.speed; }
+        if (this.x < 0) this.x = 0; if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
+        if (((this.side === 'left' && keys['w']) || (this.side === 'right' && keys['ArrowUp'])) && !this.isJumping && !this.isCrouching) { this.vy = -12; this.isJumping = true; }
+        this.vy += GRAVITY; this.y += this.vy; let groundY = canvas.height - this.height - 20; if (this.y >= groundY) { this.y = groundY; this.vy = 0; this.isJumping = false; }
         
-        if (this.side === 'left') {
-            if(p1ShieldInterval) clearInterval(p1ShieldInterval);
-            p1ShieldInterval = setInterval(tick.bind(this), 100);
-        } else {
-            if(p2ShieldInterval) clearInterval(p2ShieldInterval);
-            p2ShieldInterval = setInterval(tick.bind(this), 100);
+        let now = Date.now();
+        // 【修復】爆頭連擊、暴擊護盾與盾牌冷卻：利用主迴圈判定取代 Interval
+        if (this.headshotCombo > 0 && now - this.lastHeadshotTime > 2000) { this.headshotCombo = 0; }
+        if (this.critShieldActive && now > this.critShieldEndTime) { this.critShieldActive = false; }
+        if (this.isShieldActive && now > this.shieldEndTime) { this.isShieldActive = false; }
+        if (this.shieldCooldown && now > this.shieldCdEndTime) { this.shieldCooldown = false; }
+        
+        if (this.hp > 0 && this.hp < MAX_HP && (now - this.lastDamagedTime > 5000)) { 
+            if (this.lastHealTickTime < this.lastDamagedTime) this.lastHealTickTime = now; 
+            if (now - this.lastHealTickTime >= 3000) { 
+                this.hp = Math.min(MAX_HP, this.hp + HEAL_AMOUNT); 
+                damageTexts.push(new FloatingText(this.x + this.width/2 - 10, this.y - 15, `+${HEAL_AMOUNT}`, "#00ff33")); 
+                this.lastHealTickTime = now; updateHpBars(); 
+            } 
         }
-
-        function tick() {
-            current -= 0.1;
-            if (current <= 0) {
-                if (this.side === 'left' && p1ShieldInterval) { clearInterval(p1ShieldInterval); p1ShieldInterval = null; }
-                if (this.side === 'right' && p2ShieldInterval) { clearInterval(p2ShieldInterval); p2ShieldInterval = null; }
-                this.shieldCooldown = false; 
-                updateStatusUI();
-            } else {
-                const id = this.side === 'left' ? 'p1Status' : 'p2Status';
-                let stateStr = "正常";
-                if (this.critShieldActive) stateStr = "🛡️ 爆擊免疫中";
-                else if (Date.now() - this.lastDamagedTime > 5000) {
-                    let nextTick = (3 - (Date.now() - this.lastHealTickTime)/1000).toFixed(1);
-                    stateStr = "⌛ 回血倒數 " + nextTick + "s";
-                }
-                document.getElementById(id).innerText = "盾牌冷卻: " + current.toFixed(1) + "s | 連擊: " + this.headshotCombo;
+    }
+    
+    draw() {
+        let headHeight = this.height * 0.25; let bodyHeight = this.height * 0.75; 
+        ctx.fillStyle = "#ffcc00"; ctx.fillRect(this.x, this.y, this.width, headHeight);
+        ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y + headHeight, this.width, bodyHeight);
+        ctx.strokeStyle = "#000000"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(this.x, this.y + headHeight); ctx.lineTo(this.x + this.width, this.y + headHeight); ctx.stroke();
+        if (this.isShieldActive) { ctx.fillStyle = "rgba(0, 255, 255, 0.7)"; ctx.shadowBlur = 15; ctx.shadowColor = "#00ffff"; let opponent = (this.side === 'left') ? p2 : p1; if (this.x < opponent.x) { ctx.fillRect(this.x + this.width + 5, this.y, 8, this.height); } else { ctx.fillRect(this.x - 13, this.y, 8, this.height); } ctx.shadowBlur = 0; }
+        if (this.critShieldActive) { ctx.strokeStyle = "rgba(0, 150, 255, 0.8)"; ctx.lineWidth = 4; ctx.shadowBlur = 20; ctx.shadowColor = "#0077ff"; ctx.beginPath(); let centerX = this.x + this.width / 2; let centerY = this.y + this.height / 2; let radius = Math.max(this.width, this.height) * 0.7; ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0; }
+    }
+    
+    activateShield() {
+        if (this.shieldCooldown || this.isShieldActive) return; 
+        this.isShieldActive = true; 
+        this.shieldEndTime = Date.now() + this.shieldDuration;
+        this.shieldCooldown = true;
+        this.shieldCdEndTime = Date.now() + this.shieldCdTime;
+        
+        if (counterCloudActive) {
+            let opponentsWeapons = weapons.filter(w => w.owner !== this);
+            if (opponentsWeapons.length > 0) {
+                cloudsDOM.forEach(cloudDOM => { cloudDOM.classList.add('pulse'); setTimeout(() => cloudDOM.classList.remove('pulse'), 400); });
+                weapons.forEach(w => { if (w.owner !== this) { w.owner = this; w.vx *= -1.5; w.vy *= -1.2; w.bounceCount = 0; } });
+                logCombat("🛡️ " + this.name + " 彈開了場上所有敵方武器！🛡️");
             }
         }
     }
 }
 
 class Weapon {
-    constructor(x, y, vx, vy, owner, rawShape) {
-        this.x = x; this.y = y;
-        this.vx = vx; this.vy = vy;
-        this.owner = owner;
-        this.shape = [...rawShape]; 
-        this.radius = 12; 
-        this.bounceCount = 0;
-        this.isDead = false;
-        this.angle = 0; 
-    }
-
-    update() {
-        this.vy += 0.1; 
-        this.x += this.vx;
-        this.y += this.vy;
-        this.angle += 0.1; 
-
-        if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
-            this.vx *= -0.9;
-            this.x = this.x - this.radius < 0 ? this.radius : canvas.width - this.radius;
-            this.handleBounce();
-        }
-        if (this.y - this.radius < 0 || this.y + this.radius > canvas.height - 20) {
-            this.vy *= -0.9;
-            this.y = this.y - this.radius < 0 ? this.radius : canvas.height - 20 - this.radius;
-            this.handleBounce();
-        }
-    }
-
-    handleBounce() {
-        this.bounceCount++;
-        if (this.bounceCount > BOUNCE_MAX) this.isDead = true;
-    }
-
-    draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-        ctx.scale(0.25, 0.25); 
-
-        if (this.bounceCount === 0) ctx.strokeStyle = "#ffffff";
-        else if (this.bounceCount === 1) ctx.strokeStyle = "#ffaa00";
-        else ctx.strokeStyle = "#ff3333";
-        
-        ctx.lineWidth = 18; 
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-
-        ctx.beginPath();
-        if (this.shape.length > 0) {
-            ctx.moveTo(this.shape[0].x, this.shape[0].y);
-            for (let i = 1; i < this.shape.length; i++) {
-                ctx.lineTo(this.shape[i].x, this.shape[i].y);
-            }
-        }
-        ctx.stroke();
-        ctx.restore();
-    }
+    constructor(x, y, vx, vy, owner, rawShape) { this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.owner = owner; this.shape = [...rawShape]; this.radius = 12; this.bounceCount = 0; this.isDead = false; this.angle = 0; }
+    update() { this.vy += 0.1; this.x += this.vx; this.y += this.vy; this.angle += 0.1; if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) { this.vx *= -0.9; this.x = this.x - this.radius < 0 ? this.radius : canvas.width - this.radius; this.handleBounce(); } if (this.y - this.radius < 0 || this.y + this.radius > canvas.height - 20) { this.vy *= -0.9; this.y = this.y - this.radius < 0 ? this.radius : canvas.height - 20 - this.radius; this.handleBounce(); } }
+    handleBounce() { this.bounceCount++; if (this.bounceCount > BOUNCE_MAX) this.isDead = true; }
+    draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.scale(0.25, 0.25); if (this.bounceCount === 0) ctx.strokeStyle = "#ffffff"; else if (this.bounceCount === 1) ctx.strokeStyle = "#ffaa00"; else ctx.strokeStyle = "#ff3333"; ctx.lineWidth = 18; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); if (this.shape.length > 0) { ctx.moveTo(this.shape[0].x, this.shape[0].y); for (let i = 1; i < this.shape.length; i++) { ctx.lineTo(this.shape[i].x, this.shape[i].y); } } ctx.stroke(); ctx.restore(); }
 }
 
 class FloatingText {
-    constructor(x, y, text, color) {
-        this.x = x; this.y = y; this.text = text; 
-        this.fontColor = color; // 【終極修復】：加上了 this. 修正未定義全域變數導致第一局打一打就卡死的重大 Bug
-        this.alpha = 1; this.vy = -1.5;
-    }
+    constructor(x, y, text, color) { this.x = x; this.y = y; this.text = text; this.fontColor = color; this.alpha = 1; this.vy = -1.5; }
     update() { this.y += this.vy; this.alpha -= 0.02; }
-    draw() {
-        ctx.save(); ctx.globalAlpha = this.alpha; ctx.fillStyle = this.fontColor;
-        ctx.font = "bold 18px sans-serif"; ctx.fillText(this.text, this.x, this.y); ctx.restore();
-    }
+    draw() { ctx.save(); ctx.globalAlpha = Math.max(0, this.alpha); ctx.fillStyle = this.fontColor; ctx.font = "bold 14px sans-serif"; ctx.fillText(this.text, this.x, this.y); ctx.restore(); }
 }
 
-let p1 = new Player(100, 300, "#00ffcc", "left", "玩家 1 (青色)");
-let p2 = new Player(660, 300, "#ff3366", "right", "玩家 2 (紅色)");
-let weapons = [];
-let damageTexts = [];
-let gameOver = false;
+let p1, p2;
+let weapons = []; let damageTexts = []; 
 
+function drawGameBackground() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#161121"; 
+    for (let b of buildings) { 
+        ctx.fillRect(b.x, canvas.height - b.height - 20, b.width, b.height); 
+        ctx.fillStyle = "rgba(255, 204, 0, 0.15)"; 
+        if (b.height > 180) { ctx.fillRect(b.x + b.width/3, canvas.height - b.height + 50, 6, 6); ctx.fillRect(b.x + b.width/2, canvas.height - b.height + 90, 6, 6); } 
+        ctx.fillStyle = "#161121"; 
+    }
+    for (let v of vineStaticData) { ctx.strokeStyle = v.color; ctx.lineWidth = 1.5; ctx.beginPath(); if (v.points.length > 0) { ctx.moveTo(v.points[0].x, v.points[0].y); for (let p = 1; p < v.points.length; p++) { ctx.lineTo(v.points[p].x, v.points[p].y); } } ctx.stroke(); for (let b of v.buds) { ctx.fillStyle = b.color; ctx.fillRect(b.x - 2, b.y - 2, 4, 4); } }
+    
+    ctx.fillStyle = poisonPitActive ? "rgba(100, 0, 200, 0.4)" : "#1c1924"; ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+    ctx.strokeStyle = poisonPitActive ? "#ff33ff" : "#00ffcc"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, canvas.height - 20); ctx.lineTo(canvas.width, canvas.height - 20); ctx.stroke();
+    ctx.fillStyle = poisonPitActive ? "rgba(255, 51, 255, 0.4)" : "rgba(0, 255, 204, 0.4)"; ctx.font = "20px Monospace";
+    for (let i = 0; i < 10; i++) { if (i % 2 === 0) ctx.fillText(poisonPitActive ? "☠" : "❀", i * 85, canvas.height - 3); }
+}
+
+// 【修復】武器與玩家碰撞偵測邏輯，加入反彈位移防止死鎖
+function checkPlayerHit(circle, player) {
+    if (player.critShieldActive) { 
+        let centerX = player.x + player.width / 2; let centerY = player.y + player.height / 2; let radius = Math.max(player.width, player.height) * 0.7; 
+        if ((circle.x - centerX)**2 + (circle.y - centerY)**2 < (radius + circle.radius)**2) { circle.vx *= -1; circle.vy *= -1; circle.x += circle.vx * 2; return "crit_shield_blocked"; } 
+    }
+    if (player.isShieldActive) { 
+        let opponent = (player.side === 'left') ? p2 : p1; let shieldX = (player.x < opponent.x) ? player.x + player.width + 5 : player.x - 13; 
+        let closestX = Math.max(shieldX, Math.min(circle.x, shieldX + 8)); let closestY = Math.max(player.y, Math.min(circle.y, player.y + player.height)); 
+        if (Math.sqrt((circle.x - closestX)**2 + (circle.y - closestY)**2) < circle.radius) { circle.vx *= -1; circle.x += circle.vx * 2; circle.owner = player; player.isShieldActive = false; return "shield_blocked"; } 
+    }
+    let headHeight = player.height * 0.25; let closestX = Math.max(player.x, Math.min(circle.x, player.x + player.width)); 
+    let closestHeadY = Math.max(player.y, Math.min(circle.y, player.y + headHeight)); 
+    if ((circle.x - closestX)**2 + (circle.y - closestHeadY)**2 < (circle.radius * circle.radius)) return "head_hit";
+    let closestBodyY = Math.max(player.y + headHeight, Math.min(circle.y, player.y + player.height)); 
+    if ((circle.x - closestX)**2 + (circle.y - closestBodyY)**2 < (circle.radius * circle.radius)) return "body_hit";
+    return "no_hit";
+}
+
+// 【修復】計算傷害修正連擊倍率
+function calculateDamage(attacker, isHeadshot) {
+    const BASE_DAMAGE = 150; if (!isHeadshot) return BASE_DAMAGE;
+    let now = Date.now(); 
+    if (now - attacker.lastHeadshotTime <= 2000) attacker.headshotCombo++; else attacker.headshotCombo = 1; 
+    attacker.lastHeadshotTime = now; attacker.critShieldActive = true; attacker.critShieldEndTime = now + 2000; 
+    let dmg = BASE_DAMAGE * 2; for(let i = 1; i < attacker.headshotCombo; i++) { dmg *= 1.2; } return Math.round(dmg);
+}
+
+// 【修復】集中管理動態 UI 冷卻刷新，不再使用 setInterval
+function updateDynamicUI() {
+    let p1Cd = p1.shieldCooldown ? Math.max(0, (p1.shieldCdEndTime - Date.now())/1000).toFixed(1) + "s" : "Ready";
+    let p2Cd = p2.shieldCooldown ? Math.max(0, (p2.shieldCdEndTime - Date.now())/1000).toFixed(1) + "s" : "Ready";
+    document.getElementById("p1Status").innerText = `盾牌: ${p1Cd} | 連擊: ${p1.headshotCombo}`;
+    document.getElementById("p2Status").innerText = `盾牌: ${p2Cd} | 連擊: ${p2.headshotCombo}`;
+}
+
+function gameLoop() {
+    if (isDrawingPhase) { 
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        gameLoopId = requestAnimationFrame(gameLoop); 
+        return; 
+    }
+    if (gameOver) return;
+
+    drawGameBackground();
+
+    // 【修復】毒窟扣血加入 Math.max 防止負數
+    if (poisonPitActive) {
+        let now = Date.now();
+        [p1, p2].forEach(p => { if (p.hp > 0 && (p.y + p.height) >= (canvas.height - 25)) { p.hp = Math.max(0, p.hp - 3); p.lastDamagedTime = now; } });
+        updateHpBars(false);
+    }
+
+    if (keys['f'] || keys['F']) { if (p1.frameCooldownCounter === 0) { let direction = (p1.x < p2.x) ? 1 : -1; let spawnX = direction === 1 ? p1.x + p1.width + 10 : p1.x - 10; weapons.push(new Weapon(spawnX, p1.y + p1.height/2, direction * BASE_WEAPON_SPEED, -3, p1, p1WeaponShape)); p1.frameCooldownCounter = FRAME_COOLDOWN_LIMIT; } }
+    if (keys['k'] || keys['K']) { if (p2.frameCooldownCounter === 0) { let direction = (p2.x < p1.x) ? 1 : -1; let spawnX = direction === 1 ? p2.x + p2.width + 10 : p2.x - 10; weapons.push(new Weapon(spawnX, p2.y + p2.height/2, direction * BASE_WEAPON_SPEED, -3, p2, p2WeaponShape)); p2.frameCooldownCounter = FRAME_COOLDOWN_LIMIT; } }
+    if (keys['g'] || keys['G']) p1.activateShield(); if (keys['l'] || keys['L']) p2.activateShield();
+
+    p1.update(); p1.draw(); p2.update(); p2.draw();
+
+    // 【修復】武器碰撞死鎖與 HP 負數問題
+    for (let i = weapons.length - 1; i >= 0; i--) {
+        let w = weapons[i]; w.update(); w.draw(); let attacker = w.owner;
+        let hitP1 = checkPlayerHit(w, p1); if (hitP1 === "crit_shield_blocked") continue; if (hitP1 === "head_hit") { let dmg = calculateDamage(attacker, true); p1.hp = Math.max(0, p1.hp - dmg); p1.lastDamagedTime = Date.now(); damageTexts.push(new FloatingText(p1.x, p1.y - 10, "HEADSHOT! -" + dmg, "#ffcc00")); updateHpBars(); w.isDead = true; } else if (hitP1 === "body_hit") { let dmg = calculateDamage(attacker, false); p1.hp = Math.max(0, p1.hp - dmg); p1.lastDamagedTime = Date.now(); damageTexts.push(new FloatingText(p1.x, p1.y + 20, "-" + dmg, "#fff")); updateHpBars(); w.isDead = true; } 
+        let hitP2 = checkPlayerHit(w, p2); if (hitP2 === "crit_shield_blocked") continue; if (hitP2 === "head_hit") { let dmg = calculateDamage(attacker, true); p2.hp = Math.max(0, p2.hp - dmg); p2.lastDamagedTime = Date.now(); damageTexts.push(new FloatingText(p2.x, p2.y - 10, "HEADSHOT! -" + dmg, "#ffcc00")); updateHpBars(); w.isDead = true; } else if (hitP2 === "body_hit") { let dmg = calculateDamage(attacker, false); p2.hp = Math.max(0, p2.hp - dmg); p2.lastDamagedTime = Date.now(); damageTexts.push(new FloatingText(p2.x, p2.y + 20, "-" + dmg, "#fff")); updateHpBars(); w.isDead = true; } 
+        if (w.isDead) weapons.splice(i, 1);
+    }
+    
+    // 【修復】徹底解決飄字陣列不清理導致的無限迴圈當機
+    for (let i = damageTexts.length - 1; i >= 0; i--) { 
+        let t = damageTexts[i]; t.update(); t.draw(); 
+        if (t.alpha <= 0) { damageTexts.splice(i, 1); }
+    }
+    
+    updateDynamicUI();
+    if (p1.hp <= 0 || p2.hp <= 0) endGame();
+    
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+// 【修復】logCombat 畫面重疊
 function logCombat(message) {
     document.getElementById("combatLog").innerText = message;
 }
 
-function handleAction(key) {}
-
-function checkPlayerHit(circle, player) {
-    if (player.critShieldActive) {
-        let centerX = player.x + player.width / 2;
-        let centerY = player.y + player.height / 2;
-        let radius = Math.max(player.width, player.height) * 0.7;
-        let distSq = (circle.x - centerX)**2 + (circle.y - centerY)**2;
-        if (distSq < (radius + circle.radius)**2) {
-            circle.vx *= -1; circle.vy *= -1; return "crit_shield_blocked";
-        }
-    }
-
-    if (player.isShieldActive) {
-        let opponent = (player.side === 'left') ? p2 : p1;
-        let shieldX = (player.x < opponent.x) ? player.x + player.width + 5 : player.x - 13;
-        let shieldWidth = 8;
-        let closestX = Math.max(shieldX, Math.min(circle.x, shieldX + shieldWidth));
-        let closestY = Math.max(player.y, Math.min(circle.y, player.y + player.height));
-        
-        // 【終極修復】：將原本寫錯的 X 軸（closestX）修正回正確的 Y 軸（closestY），徹底斬斷盾牌反彈死鎖
-        let distance = Math.sqrt((circle.x - closestX)**2 + (circle.y - closestY)**2);
-        if (distance < circle.radius) {
-            circle.vx *= -1; circle.owner = player; player.isShieldActive = false; updateStatusUI(); return "shield_blocked";
-        }
-    }
-
-    let headHeight = player.height * 0.25;
-    let closestX = Math.max(player.x, Math.min(circle.x, player.x + player.width));
-    
-    let closestHeadY = Math.max(player.y, Math.min(circle.y, player.y + headHeight));
-    let distHeadSq = (circle.x - closestX)**2 + (circle.y - closestHeadY)**2;
-    if (distHeadSq < (circle.radius * circle.radius)) return "head_hit";
-
-    let closestBodyY = Math.max(player.y + headHeight, Math.min(circle.y, player.y + player.height));
-    let distBodySq = (circle.x - closestX)**2 + (circle.y - closestBodyY)**2;
-    if (distBodySq < (circle.radius * circle.radius)) return "body_hit";
-
-    return "no_hit";
-}
-
-function calculateDamage(attacker, isHeadshot) {
-    const BASE_DAMAGE = 150; 
-    if (!isHeadshot) return BASE_DAMAGE;
-
-    let now = Date.now();
-    if (now - attacker.lastHeadshotTime <= 2000) { attacker.headshotCombo++; } 
-    else { attacker.headshotCombo = 1; }
-    attacker.lastHeadshotTime = now;
-
-    attacker.critShieldActive = true;
-    attacker.critShieldEndTime = now + 2000; 
-
-    let dmg = BASE_DAMAGE * 2;
-    for(let i = 1; i < attacker.headshotCombo; i++) { dmg *= 1.2; }
-    return Math.round(dmg);
-}
-
-function gameLoop() {
-    if (isDrawingPhase) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        gameLoopId = requestAnimationFrame(gameLoop);
-        return;
-    }
-    if (gameOver) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 1秒強制投擲冷體檢測 (完全避免冷卻期生成殘存物件)
-    if (keys['f'] || keys['F']) {
-        if (p1.frameCooldownCounter === 0) {
-            let direction = (p1.x < p2.x) ? 1 : -1;
-            let spawnX = direction === 1 ? p1.x + p1.width + 10 : p1.x - 10;
-            weapons.push(new Weapon(spawnX, p1.y + p1.height/2, direction * BASE_WEAPON_SPEED, -3, p1, [...p1WeaponShape]));
-            p1.frameCooldownCounter = FRAME_COOLDOWN_LIMIT; 
-        }
-    }
-    if (keys['k'] || keys['K']) {
-        if (p2.frameCooldownCounter === 0) {
-            let direction = (p2.x < p1.x) ? 1 : -1;
-            let spawnX = direction === 1 ? p2.x + p2.width + 10 : p2.x - 10;
-            weapons.push(new Weapon(spawnX, p2.y + p2.height/2, direction * BASE_WEAPON_SPEED, -3, p2, [...p2WeaponShape]));
-            p2.frameCooldownCounter = FRAME_COOLDOWN_LIMIT; 
-        }
-    }
-
-    if (keys['g'] || keys['G']) p1.activateShield();
-    if (keys['l'] || keys['L']) p2.activateShield();
-
-    ctx.fillStyle = "#444";
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-
-    p1.update(); p1.draw();
-    p2.update(); p2.draw();
-
-    for (let i = weapons.length - 1; i >= 0; i--) {
-        let w = weapons[i]; w.update(); w.draw();
-        let attacker = w.owner;
-
-        let hitP1 = checkPlayerHit(w, p1);
-        if (hitP1 === "crit_shield_blocked") continue;
-        if (hitP1 === "head_hit") {
-            let dmg = calculateDamage(attacker, true); p1.hp -= dmg; p1.lastDamagedTime = Date.now();
-            damageTexts.push(new FloatingText(p1.x, p1.y - 10, "HEADSHOT! -" + dmg, "#ffcc00"));
-            logCombat("💥 爆擊！" + p1.name + " 遭到爆頭重創！受到 " + dmg + " 點傷害，剩餘 HP: " + Math.max(0, Math.round(p1.hp)));
-            updateHpBars(true); updateStatusUI(); w.isDead = true;
-        } else if (hitP1 === "body_hit") {
-            let dmg = calculateDamage(attacker, false); p1.hp -= dmg; p1.lastDamagedTime = Date.now();
-            damageTexts.push(new FloatingText(p1.x, p1.y + 20, "-" + dmg, "#fff"));
-            logCombat("🏹 擊中！" + p1.name + " 受到 " + dmg + " 點傷害，剩餘 HP: " + Math.max(0, Math.round(p1.hp)));
-            updateHpBars(false); updateStatusUI(); w.isDead = true;
-        } else if (hitP1 === "shield_blocked") {
-            logCombat("🛡️ 格擋成功！" + p1.name + " 用盾牌彈開了對方的攻擊！"); continue;
-        }
-
-        let hitP2 = checkPlayerHit(w, p2);
-        if (hitP2 === "crit_shield_blocked") continue;
-        if (hitP2 === "head_hit") {
-            let dmg = calculateDamage(attacker, true); p2.hp -= dmg; p2.lastDamagedTime = Date.now();
-            damageTexts.push(new FloatingText(p2.x, p2.y - 10, "HEADSHOT! -" + dmg, "#ffcc00"));
-            logCombat("💥 爆擊！" + p2.name + " 遭到爆頭重創！受到 " + dmg + " 點傷害，剩餘 HP: " + Math.max(0, Math.round(p2.hp)));
-            updateHpBars(true); updateStatusUI(); w.isDead = true;
-        } else if (hitP2 === "body_hit") {
-            let dmg = calculateDamage(attacker, false); p2.hp -= dmg; p2.lastDamagedTime = Date.now();
-            damageTexts.push(new FloatingText(p2.x, p2.y + 20, "-" + dmg, "#fff"));
-            logCombat("🏹 擊中！" + p2.name + " 受到 " + dmg + " 點傷害，剩餘 HP: " + Math.max(0, Math.round(p2.hp)));
-            updateHpBars(false); updateStatusUI(); w.isDead = true;
-        } else if (hitP2 === "shield_blocked") {
-            logCombat("🛡️ 格擋成功！" + p2.name + " 用盾牌彈開了對方的攻擊！"); continue;
-        }
-
-        if (w.isDead) weapons.splice(i, 1);
-    }
-
-    for (let i = damageTexts.length - 1; i >= 0; i--) {
-        let t = damageTexts[i]; t.update(); t.draw();
-        if (t.alpha <= 0) damageTexts.splice(i, 1);
-    }
-
-    if (p1.hp <= 0 || p2.hp <= 0) endGame();
-
-    gameLoopId = requestAnimationFrame(gameLoop);
-}
-
-function updateHpBars(isCrit = false) {
-    let p1DisplayHp = Math.max(0, Math.round(p1.hp));
-    let p2DisplayHp = Math.max(0, Math.round(p2.hp));
-    document.getElementById("p1HpFill").style.width = (p1DisplayHp / MAX_HP * 100) + "%";
-    document.getElementById("p2HpFill").style.width = (p2DisplayHp / MAX_HP * 100) + "%";
-    document.getElementById("p1HpRed").style.width = (p1DisplayHp / MAX_HP * 100) + "%";
-    document.getElementById("p2HpRed").style.width = (p2DisplayHp / MAX_HP * 100) + "%";
-    document.getElementById("p1HpText").innerText = p1DisplayHp + " / " + MAX_HP;
-    document.getElementById("p2HpText").innerText = p2DisplayHp + " / " + MAX_HP;
-}
-
-function updateStatusUI() {
-    document.getElementById("p1Status").innerText = "盾牌: " + (p1.shieldCooldown ? "冷卻" : "準備") + " | 連擊: " + p1.headshotCombo;
-    document.getElementById("p2Status").innerText = "盾牌: " + (p2.shieldCooldown ? "冷卻" : "準備") + " | 連擊: " + p2.headshotCombo;
+function updateHpBars() {
+    let p1DisplayHp = Math.max(0, Math.round(p1.hp)); let p2DisplayHp = Math.max(0, Math.round(p2.hp));
+    document.getElementById("p1HpFill").style.width = (p1DisplayHp / MAX_HP * 100) + "%"; document.getElementById("p2HpFill").style.width = (p2DisplayHp / MAX_HP * 100) + "%";
+    document.getElementById("p1HpRed").style.width = (p1DisplayHp / MAX_HP * 100) + "%"; document.getElementById("p2HpRed").style.width = (p2DisplayHp / MAX_HP * 100) + "%";
+    document.getElementById("p1HpText").innerText = p1DisplayHp + " / " + MAX_HP; document.getElementById("p2HpText").innerText = p2DisplayHp + " / " + MAX_HP;
 }
 
 function endGame() {
-    gameOver = true;
-    document.getElementById("winnerText").innerText = (p1.hp <= 0) ? "玩家 2 獲勝！" : "玩家 1 獲勝！";
-    document.getElementById("gameOverScreen").style.display = "flex";
+    gameOver = true; document.getElementById("winnerText").innerText = (p1.hp <= 0) ? "玩家 2 (紅色) 獲勝！" : "玩家 1 (青色) 獲勝！"; document.getElementById("gameOverScreen").style.display = "flex";
 }
 
+// 【修復】全域污染與 reset 問題：徹底重置玩家實例
 function resetToDrawScreen() {
-    if (gameLoopId) cancelAnimationFrame(gameLoopId);
-    isDrawingPhase = true; gameOver = false;
-    weapons = []; damageTexts = []; keys = {};
-
-    p1.hp = MAX_HP; p1.x = 100; p1.y = 300; p1.vy = 0; p1.frameCooldownCounter = 0; p1.headshotCombo = 0;
-    p2.hp = MAX_HP; p2.x = 660; p2.y = 300; p2.vy = 0; p2.frameCooldownCounter = 0; p2.headshotCombo = 0;
-    p1.isCrouching = false; p2.isCrouching = false;
+    if (gameLoopId) { cancelAnimationFrame(gameLoopId); gameLoopId = null; }
+    isDrawingPhase = true; gameOver = false; weapons = []; damageTexts = []; keys = {};
     
-    if(p1ShieldInterval) clearInterval(p1ShieldInterval);
-    if(p2ShieldInterval) clearInterval(p2ShieldInterval);
-
-    // 正確傳參，執行引用強制排空
-    clearCanvas('p1Paint', p1WeaponShape);
-    clearCanvas('p2Paint', p2WeaponShape);
+    // 重生玩家實例，洗白所有狀態
+    p1 = new Player(100, 300, "#00ffcc", "left", "玩家 1 (青色)");
+    p2 = new Player(660, 300, "#ff3366", "right", "紅色");
     
-    initPaintBrushStyle(document.getElementById('p1Paint').getContext('2d'), "#00ffcc");
-    initPaintBrushStyle(document.getElementById('p2Paint').getContext('2d'), "#ff3366");
-
+    p1WeaponShape.length = 0; p2WeaponShape.length = 0;
+    clearCanvas('p1Paint', p1WeaponShape); clearCanvas('p2Paint', p2WeaponShape);
+    
+    document.getElementById('stageMapSelect').style.display = 'flex';
+    document.getElementById('stageWeaponDraw').style.display = 'none';
     document.getElementById("gameOverScreen").style.display = "none";
     document.getElementById("drawScreen").style.display = "flex";
-    updateHpBars(); updateStatusUI();
-
+    
+    selectMap('random'); 
+    updateHpBars(); 
+    updateDynamicUI();
+    logCombat("🎨 戰前整備：請手動選擇地圖並繪製專屬兵器 🎨");
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
-// 開局啟動
-gameLoopId = requestAnimationFrame(gameLoop);
-updateHpBars();
-updateStatusUI();
+// 唯一開局啟動點
+window.onload = function() {
+    bindCanvasEvents(); // 只綁定一次事件
+    p1 = new Player(100, 300, "#00ffcc", "left", "玩家 1 (青色)");
+    p2 = new Player(660, 300, "#ff3366", "right", "紅色");
+    updateHpBars(); 
+    updateDynamicUI();
+    gameLoopId = requestAnimationFrame(gameLoop);
+};
 </script>
 </body>
 </html>
